@@ -1,0 +1,13 @@
+.DS_Store
+
+# Secrets - never commit these (copy secrets.example.h to secrets.h)
+busstop/secrets.h
+busstop/backup/
+
+# Build output
+busstop/build/
+busstop/tools/BusStopUpdater/.build/
+busstop/tools/BusStopUpdater/*.app/
+
+# Unused Adafruit GFX fonts from the first version
+busstop/Fonts/
