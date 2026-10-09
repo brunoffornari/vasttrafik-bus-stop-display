@@ -231,14 +231,11 @@ final class Updater: ObservableObject {
         return nil
     }
 
-    /// Looks for `kOtaPassword = "..."` in the sketch's .h files.
+    /// Reads `kOtaPassword = "..."` from the sketch's secrets.h (never from secrets.example.h).
     static func readUpdatePassword(in directory: URL) -> String? {
-        guard let files = try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil) else { return nil }
-        for file in files where file.pathExtension == "h" {
-            guard let text = try? String(contentsOf: file, encoding: .utf8) else { continue }
-            if let password = firstMatch(in: text, pattern: #"kOtaPassword\s*=\s*"([^"]*)""#) { return password }
-        }
-        return nil
+        let file = directory.appendingPathComponent("secrets.h")
+        guard let text = try? String(contentsOf: file, encoding: .utf8) else { return nil }
+        return firstMatch(in: text, pattern: #"kOtaPassword\s*=\s*"([^"]*)""#)
     }
 
     static func firstMatch(in text: String, pattern: String) -> String? {
