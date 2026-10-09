@@ -42,8 +42,11 @@ If the WiFi is gone for 15 minutes, the setup page opens by itself.
 
 ## Updating over WiFi
 
-- **Mac app:** build it once with `busstop/tools/BusStopUpdater/build.sh`, then open
-  *Bus Stop Updater*, choose the `.ino`, enter the display's IP address (or press *Find*) and press
+- **Mac app:** download [`Bus-Stop-Updater.zip`](busstop/tools/BusStopUpdater/Bus-Stop-Updater.zip)
+  (Apple Silicon Macs), unzip it and drag *Bus Stop Updater* to Applications. The app is not notarized,
+  so the first time use right-click > Open (or run `xattr -dr com.apple.quarantine "Bus Stop Updater.app"`).
+  Or build it yourself with `busstop/tools/BusStopUpdater/build.sh`, which also refreshes the zip.
+  Then open *Bus Stop Updater*, choose the `.ino`, enter the display's IP address (or press *Find*) and press
   *Update display*. It reads the update password from `secrets.h`.
 - **Command line:** `busstop/update.sh` (WiFi) or `busstop/update.sh cable` (USB).
 

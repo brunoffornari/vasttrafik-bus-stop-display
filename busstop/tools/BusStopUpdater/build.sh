@@ -35,5 +35,11 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 </plist>
 PLIST
 
-codesign --force --sign - "$APP" >/dev/null 2>&1 || true
-echo "Done: $PWD/$APP"
+xattr -cr "$APP"   # signing fails if files carry extended attributes
+codesign --force --sign - "$APP"
+codesign --verify --strict "$APP"
+
+# Zip for sharing (kept in git so the finished app can be downloaded)
+rm -f Bus-Stop-Updater.zip
+ditto -c -k --keepParent --norsrc --noextattr "$APP" Bus-Stop-Updater.zip
+echo "Done: $PWD/$APP and $PWD/Bus-Stop-Updater.zip"
