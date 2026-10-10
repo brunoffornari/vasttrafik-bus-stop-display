@@ -20,7 +20,17 @@ programs can edit it too. -->
 
 ## Print settings
 
-<!-- TODO (maintainer): fill in. Suggested items: printer, material, layer height, infill, supports, print time. -->
+| Setting | Value |
+| --- | --- |
+| Printer | Bambu Lab A1 mini |
+| Material | PLA |
+| Layer height | 0.2 mm |
+| Other settings | The normal (default) profile, nothing special |
+| Supports | Not needed |
+
+Print the front and the back as two separate parts.
+
+<!-- TODO (optional, maintainer): add print time, infill and the orientation of each part, if you want. -->
 
 ## Assembly
 
