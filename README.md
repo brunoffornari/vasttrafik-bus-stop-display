@@ -5,6 +5,10 @@ the clock, the date and the temperature. Live, in Swedish time, and set up from 
 
 > **Unofficial.** This is a hobby project and is not affiliated with or endorsed by Västtrafik.
 
+![The display showing departures from Lillhagsparken Södra](docs/images/display-closeup.jpg)
+
+![The display on a shelf in a hallway](docs/images/display-on-shelf.jpg)
+
 ## Who is this for?
 
 People who live in **Västtrafik's area** in Sweden (Västra Götaland, for example Göteborg, Borås, Skövde and
@@ -76,7 +80,7 @@ updates.
 
 ## License and credits
 
-- Code: [MIT License](LICENSE). 3D case: [CC BY-SA 4.0](case/LICENSE).
+- Code: [MIT License](LICENSE). 3D case and photos: [CC BY-SA 4.0](case/LICENSE).
 - Uses LVGL, TFT_eSPI, ArduinoJson, the Montserrat font and the Open-Meteo weather data, which keep their own
   licenses: see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 - Want to help? See [CONTRIBUTING.md](CONTRIBUTING.md).

@@ -2,7 +2,7 @@
 
 A case for the 3.5" ESP32 display board described in [docs/hardware.md](../docs/hardware.md), made to sit on a shelf or hallway table.
 
-<!-- TODO (maintainer): add a photo of the printed case, e.g. case/photos/case.jpg, and show it here. -->
+![The printed case with the display, on a shelf](../docs/images/display-on-shelf.jpg)
 
 ## Files
 
