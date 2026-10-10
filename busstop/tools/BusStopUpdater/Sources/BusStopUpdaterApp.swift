@@ -206,7 +206,7 @@ struct ContentView: View {
                 TextField("", text: $updater.board).textFieldStyle(.roundedBorder)
             }
             LabeledContent("Update password") {
-                SecureField("Read from secrets.h", text: $updater.passwordOverride).textFieldStyle(.roundedBorder)
+                SecureField("The one you set on the setup page", text: $updater.passwordOverride).textFieldStyle(.roundedBorder)
             }
             Button("Reset board") { updater.board = Updater.defaultBoard }
                 .controlSize(.small)

@@ -6,7 +6,7 @@
 //
 //   busstop.ino      - setup() and loop()
 //   config.h         - settings (intervals, timezone, brightness, touch ...)
-//   secrets.h        - API and update passwords
+//   secrets.h        - optional developer defaults (not needed: use the setup page)
 //   display_driver   - TFT + LVGL setup
 //   gt911            - touch controller (I2C)
 //   backlight        - brightness by time of day (smooth fades, tap to wake)
@@ -217,6 +217,7 @@ void setup() {
   if (!configured || setupButtonPressed()) runSetupPortal();
 
   wifiSetCredentials(settings.ssid, settings.password);
+  setCredentials(settings.clientId, settings.clientSecret);
   setStopId(settings.stopId);
   if (!ensureWiFiConnected()) {
     Serial.println("WiFi connection failed, opening setup");
@@ -224,7 +225,7 @@ void setup() {
   }
 
   timeInit();
-  otaBegin();
+  otaBegin(settings.otaPassword);
   Serial.println("Getting token...");
   requestToken();
 

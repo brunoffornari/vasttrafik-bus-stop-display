@@ -26,6 +26,9 @@ State state = State::Idle;
 String errorMessage;
 String pendingSsid;
 String pendingPassword;
+String pendingClientId;
+String pendingClientSecret;
+String pendingOtaPassword;
 unsigned long connectStartedMs = 0;
 unsigned long lastActivityMs = 0;
 unsigned long restartAtMs = 0;  // 0 = not scheduled
@@ -76,10 +79,20 @@ void handleConnect() {
   markActivity();
   pendingSsid = server.arg("ssid");
   pendingPassword = server.arg("password");
+  pendingClientId = server.arg("clientId");
+  pendingClientSecret = server.arg("clientSecret");
+  pendingOtaPassword = server.arg("otaPassword");
+  pendingClientId.trim();
+  pendingClientSecret.trim();
   if (pendingSsid.isEmpty()) {
     sendError(400, "Missing network name");
     return;
   }
+  if (pendingClientId.isEmpty() || pendingClientSecret.isEmpty()) {
+    sendError(400, "Missing Västtrafik key");
+    return;
+  }
+  setCredentials(pendingClientId, pendingClientSecret);
 
   Serial.printf("Setup: connecting to %s\n", pendingSsid.c_str());
   uiSetSetupStatus("Connecting to " + pendingSsid + "...");
@@ -143,6 +156,9 @@ void handleSave() {
   settings.ssid = pendingSsid;
   settings.password = pendingPassword;
   settings.stopId = stopId;
+  settings.clientId = pendingClientId;
+  settings.clientSecret = pendingClientSecret;
+  settings.otaPassword = pendingOtaPassword;
   settingsSave(settings);
   Serial.println("Setup: settings saved, restarting");
   uiSetSetupStatus("Saved! Restarting...");
@@ -170,7 +186,7 @@ void updateConnection() {
       uiSetSetupStatus("WiFi OK. Pick your stop.");
     } else {
       state = State::Failed;
-      errorMessage = "Connected, but could not reach Västtrafik.";
+      errorMessage = "Connected to WiFi, but Västtrafik did not accept the key. Check the Client ID and Secret.";
       uiSetSetupStatus("Cannot reach Vasttrafik");
     }
   } else if (millis() - connectStartedMs > kConnectTimeoutMs) {

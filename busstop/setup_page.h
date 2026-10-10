@@ -23,6 +23,7 @@ static const char kSetupPage[] PROGMEM = R"rawliteral(<!DOCTYPE html>
   #msg, #stopMsg { margin-top: 12px; min-height: 22px; color: #ffaa00; }
   .stop { padding: 12px; margin-top: 8px; border: 1px solid #444; border-radius: 8px; background: #1e1e1e; }
   .stop.selected { border-color: #00aaff; background: #12303f; }
+  .hint { font-size: 14px; color: #8a94a6; line-height: 1.4; margin: 6px 0 0; }
   .hidden { display: none; }
 </style>
 </head>
@@ -37,6 +38,20 @@ static const char kSetupPage[] PROGMEM = R"rawliteral(<!DOCTYPE html>
     <datalist id="nets"></datalist>
     <label for="password">Password</label>
     <input id="password" type="password" autocapitalize="none" autocorrect="off">
+
+    <h2>Västtrafik key</h2>
+    <p class="hint">Every display needs its own free key. Get yours before you start at
+      developer.vasttrafik.se: create an application and subscribe it to the Planera Resa v4 API.</p>
+    <label for="clientId">Client ID</label>
+    <input id="clientId" autocapitalize="none" autocorrect="off" spellcheck="false">
+    <label for="clientSecret">Client secret</label>
+    <input id="clientSecret" type="password" autocapitalize="none" autocorrect="off" spellcheck="false">
+
+    <h2>Updates over WiFi</h2>
+    <label for="otaPassword">Update password (optional)</label>
+    <input id="otaPassword" type="password" autocapitalize="none" autocorrect="off">
+    <p class="hint">Choose a password to update the display from your computer without a cable.
+      Leave it empty to turn WiFi updates off.</p>
     <button class="secondary" id="rescan">Scan again</button>
     <button id="connect">Connect</button>
     <div id="msg"></div>
@@ -77,11 +92,15 @@ async function scan() {
 
 async function connect() {
   const ssid = $('ssid').value.trim();
+  const clientId = $('clientId').value.trim();
+  const clientSecret = $('clientSecret').value.trim();
   if (!ssid) { $('msg').textContent = 'Choose a network.'; return; }
+  if (!clientId || !clientSecret) { $('msg').textContent = 'Enter your Västtrafik Client ID and secret.'; return; }
   $('connect').disabled = true;
   $('msg').textContent = 'Connecting...';
 
-  const body = new URLSearchParams({ ssid: ssid, password: $('password').value });
+  const body = new URLSearchParams({ ssid: ssid, password: $('password').value,
+    clientId: clientId, clientSecret: clientSecret, otaPassword: $('otaPassword').value });
   try { await fetch('/connect', { method: 'POST', body: body }); } catch (e) {}
 
   // The phone may lose the hotspot for a moment, so keep asking until we get an answer.

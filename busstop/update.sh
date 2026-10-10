@@ -18,7 +18,9 @@ if [ "$1" = "cable" ]; then
 else
   IP=$(ping -c1 -t3 busstop.local | sed -n 's/^PING [^(]*(\([0-9.]*\)).*/\1/p')
   if [ -z "$IP" ]; then echo "Cannot find busstop.local on the network"; exit 1; fi
-  PASSWORD=$(grep -o 'kOtaPassword = "[^"]*"' secrets.h | cut -d'"' -f2)
+  # Password: BUSSTOP_OTA_PASSWORD, or secrets.h (developers), same as set on the setup page
+  PASSWORD="${BUSSTOP_OTA_PASSWORD:-$(grep -o 'kOtaPassword = "[^"]*"' secrets.h 2>/dev/null | cut -d'"' -f2)}"
+  if [ -z "$PASSWORD" ]; then echo "Set the update password first: export BUSSTOP_OTA_PASSWORD=..."; exit 1; fi
   echo "Uploading to $IP over WiFi..."
   python3 "$ESPOTA" -i "$IP" -p 3232 -a "$PASSWORD" -f "$BUILD_DIR/busstop.ino.bin" -r 2>&1 | tr '\r' '\n' | grep -vE "^\s*$" | tail -4
 fi

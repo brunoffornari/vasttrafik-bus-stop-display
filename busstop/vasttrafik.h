@@ -36,6 +36,9 @@ struct StopMatch {
   String name;  // e.g. "Gräddgatan, Göteborg"
 };
 
+// Sets the API key used by requestToken().
+void setCredentials(const String &clientId, const String &clientSecret);
+
 // Chooses which stop fetchDepartures() reads.
 void setStopId(const String &stopId);
 

@@ -5,18 +5,21 @@
 
 #include "backlight.h"
 #include "config.h"
-#include "secrets.h"
 #include "ui.h"
 
 namespace {
 bool started = false;
 }
 
-void otaBegin() {
+void otaBegin(const String &password) {
   if (started) return;
+  if (password.isEmpty()) {
+    Serial.println("OTA off: no update password set");
+    return;
+  }
 
   ArduinoOTA.setHostname(config::kOtaHostname);
-  ArduinoOTA.setPassword(secrets::kOtaPassword);
+  ArduinoOTA.setPassword(password.c_str());
 
   ArduinoOTA.onStart([]() {
     Serial.println("OTA update started");

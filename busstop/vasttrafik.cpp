@@ -3,7 +3,6 @@
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
 
-#include "secrets.h"
 #include "time_service.h"
 #include "utils.h"
 #include "wifi_manager.h"
@@ -12,6 +11,8 @@ namespace {
 
 String accessToken;  // empty = needs refresh
 String stopId;
+String clientId;
+String clientSecret;
 
 // "#RRGGBB" -> number, or kNoColor if missing/invalid.
 uint32_t parseHexColor(const char *text) {
@@ -96,6 +97,12 @@ FetchResult parseDepartures(const String &payload, DepartureBoard &board) {
 
 }  // namespace
 
+void setCredentials(const String &id, const String &secret) {
+  clientId = id;
+  clientSecret = secret;
+  accessToken = "";
+}
+
 void setStopId(const String &id) {
   stopId = id;
 }
@@ -156,7 +163,7 @@ bool requestToken() {
   }
 
   https.addHeader("Content-Type", "application/x-www-form-urlencoded");
-  String credentials = String(secrets::kClientId) + ":" + String(secrets::kClientSecret);
+  String credentials = clientId + ":" + clientSecret;
   https.addHeader("Authorization", "Basic " + base64Encode(credentials));
 
   int httpCode = https.POST("grant_type=client_credentials&scope=default");

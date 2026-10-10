@@ -33,7 +33,9 @@ final class Updater: ObservableObject {
     @Published var sketchURL: URL?
     @Published var deviceAddress: String
     @Published var board: String
-    @Published var passwordOverride = ""
+    @Published var passwordOverride = "" {
+        didSet { UserDefaults.standard.set(passwordOverride, forKey: "updatePassword") }
+    }
     @Published var steps = Updater.freshSteps()
     @Published var uploadProgress: Double?
     @Published var log = ""
@@ -48,6 +50,7 @@ final class Updater: ObservableObject {
     init() {
         deviceAddress = defaults.string(forKey: "deviceAddress") ?? ""
         board = defaults.string(forKey: "board") ?? Updater.defaultBoard
+        passwordOverride = defaults.string(forKey: "updatePassword") ?? ""
         if let path = defaults.string(forKey: "sketchPath"), FileManager.default.fileExists(atPath: path) {
             sketchURL = URL(fileURLWithPath: path)
         }
@@ -176,7 +179,7 @@ final class Updater: ObservableObject {
             setStep(1, .failed)
             uploadProgress = nil
             message = UserMessage(
-                text: "Could not send the code. Check the IP address, that the display is on and on the same WiFi, and that the update password is right.",
+                text: "Could not send the code. Check the IP address, that the display is on and on the same WiFi, and that the update password is right (open Advanced to set it).",
                 isError: true)
             return
         }

@@ -23,12 +23,14 @@ Västtrafik stop, the clock, the date and the outside temperature.
 2. Copy the files in [`busstop/docs/library-config`](busstop/docs/library-config) into your Arduino
    libraries: `TFT_eSPI_User_Setup.h` replaces `TFT_eSPI/User_Setup.h`, and `lv_conf.h` goes next to the
    `lvgl` folder (`Documents/Arduino/libraries/lv_conf.h`). They hold the pin layout of this board.
-3. Copy `busstop/secrets.example.h` to `busstop/secrets.h` and fill in your
-   [Västtrafik API](https://developer.vasttrafik.se) credentials and an update password.
+3. Get your own free key at [developer.vasttrafik.se](https://developer.vasttrafik.se) (create an
+   application and subscribe it to the Planera Resa v4 API). You enter it on the setup page in step 5,
+   so nothing secret lives in the code. (`secrets.example.h` is only an optional shortcut for developers.)
 4. Open `busstop/busstop.ino`, select the board and port, and upload by cable.
    (The sketch folder must keep the name `busstop`.)
 5. On first start the screen says **Setup**. Join the WiFi `BusStop-Setup` with your phone, pick your
-   WiFi and your bus stop, and save.
+   WiFi, enter your Västtrafik Client ID and secret, optionally choose an update password, pick your bus
+   stop, and save. (Without an update password, updates over WiFi stay off.)
 
 ## Using it
 
@@ -47,8 +49,9 @@ If the WiFi is gone for 15 minutes, the setup page opens by itself.
   so the first time use right-click > Open (or run `xattr -dr com.apple.quarantine "Bus Stop Updater.app"`).
   Or build it yourself with `busstop/tools/BusStopUpdater/build.sh`, which also refreshes the zip.
   Then open *Bus Stop Updater*, choose the `.ino`, enter the display's IP address (or press *Find*) and press
-  *Update display*. It reads the update password from `secrets.h`.
-- **Command line:** `busstop/update.sh` (WiFi) or `busstop/update.sh cable` (USB).
+  *Update display*. Enter the update password you chose on the setup page under *Advanced* (the app
+  remembers it).
+- **Command line:** `busstop/update.sh` (WiFi, with `BUSSTOP_OTA_PASSWORD` set) or `busstop/update.sh cable` (USB).
 
 Both need Arduino IDE installed (they use its compiler).
 
@@ -58,7 +61,7 @@ Both need Arduino IDE installed (they use its compiler).
 | --- | --- |
 | `busstop.ino` | `setup()` and `loop()` |
 | `config.h` | All settings: intervals, brightness, touch, timezone |
-| `secrets.h` | API and update passwords (not in git) |
+| `secrets.h` | Optional developer defaults (not in git) |
 | `ui.*`, `src/fonts` | Screen layout and the Montserrat fonts with å ä ö |
 | `vasttrafik.*`, `weather.*` | The two web APIs |
 | `time_service.*`, `iso_time.h` | NTP, summer/winter time, time math |
