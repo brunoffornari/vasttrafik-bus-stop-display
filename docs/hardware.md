@@ -7,7 +7,7 @@
 | **3.5" ESP32 display board: 480x320 ST7796 screen, GT911 capacitive touch** | See "The board this was built on" below. Boards of this type are often called **ESP32-3248S035C** (the **C** means *capacitive* touch). The **R** version has *resistive* touch (XPT2046) and is **not** supported. |
 | USB cable that carries **data** | Charge-only cables will not show up as a serial port. |
 | 5 V USB power supply | Any phone charger works. |
-| 3D-printed case | Files and print notes in [`case/`](../case). Optional. |
+| 3D-printed case and **4 x M2.5 x 6 mm screws** | Files, print settings and parts list in [`case/`](../case). Optional. |
 
 ## The board this was built on
 

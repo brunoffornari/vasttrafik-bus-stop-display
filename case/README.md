@@ -32,9 +32,16 @@ Print the front and the back as two separate parts.
 
 <!-- TODO (optional, maintainer): add print time, infill and the orientation of each part, if you want. -->
 
+## What you need
+
+- The two printed parts (front and back)
+- The display board ([docs/hardware.md](../docs/hardware.md))
+- **4 x M2.5 x 6 mm screws**
+
 ## Assembly
 
-<!-- TODO (maintainer): describe how the board fits, whether screws or glue are needed, and the cable exit. -->
+<!-- TODO (maintainer): describe the steps: how the board fits in the front part, which parts the 4 screws hold, and
+where the USB cable comes out. -->
 
 ## License
 
