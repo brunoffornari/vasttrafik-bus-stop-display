@@ -40,8 +40,22 @@ Print the front and the back as two separate parts.
 
 ## Assembly
 
-<!-- TODO (maintainer): describe the steps: how the board fits in the front part, which parts the 4 screws hold, and
-where the USB cable comes out. -->
+1. Tip: upload the firmware and run the setup first, so you know the board works before you close the case.
+2. Put the display board in the front part.
+3. Put the back plate on and screw it to the front part with the **4 x M2.5 x 6 mm screws**. The screws go in
+   **from the back**, into the front part.
+
+<!-- TODO (optional, maintainer): add a photo of the open case, and say how the board is held in place. -->
+
+## Power
+
+**The easy way (recommended): use the board's USB connector** with a normal USB cable and a 5 V phone charger.
+No tools or soldering needed.
+
+*Optional, for advanced users:* the author soldered a regular 5 V power cable to the board's **VCC** and **GND**
+pads instead of using USB. That needs soldering skills. Use **5 V only**, take care of the polarity (plus to VCC,
+minus to GND), and to be safe do not connect USB and the soldered cable at the same time. You do the soldering
+at your own risk.
 
 ## License
 
