@@ -1,36 +1,41 @@
-# Bus Stop Display
+# Västtrafik Bus Stop Display
 
-A small ESP32 screen for the hallway wall. It shows the next departures from a
-Västtrafik stop, the clock, the date and the outside temperature.
+A small ESP32 screen for your hallway wall that shows the **next departures from your Västtrafik stop**,
+the clock, the date and the temperature. Live, in Swedish time, and set up from your phone.
 
-- Live departures with line colors, delays included, cancelled buses marked
-- Clock with blinking colon, correct summer/winter time (EU rule), re-synced daily
-- Temperature from [Open-Meteo](https://open-meteo.com) (no key needed)
-- Brightness follows the time of day with smooth fades. A tap wakes the screen.
-- Setup from your phone: pick WiFi and bus stop on a web page, nothing is hard-coded
-- If the internet goes away it keeps counting down and shows "No connection"
-- Updates over WiFi, with a small Mac app or one command
+> **Unofficial.** This is a hobby project and is not affiliated with or endorsed by Västtrafik.
 
-## Hardware
+## Who is this for?
 
-- ESP32-3248S035C: 3.5" 480x320 screen (ST7796) with GT911 capacitive touch
-- Board in Arduino IDE: **ESP32 Dev Module**, Partition Scheme **Minimal SPIFFS (1.9MB APP with OTA)**
+People who live in **Västtrafik's area** in Sweden (Västra Götaland, for example Göteborg, Borås, Skövde and
+Trollhättan). It uses Västtrafik's *Planera Resa* API, so it only knows Västtrafik stops, and it is built for
+Swedish time (CET/CEST). It will not work for other transport companies or countries without changes.
 
-## First time
+## What it does
 
-1. Install Arduino IDE with the ESP32 board package, and the libraries
-   **lvgl 8.3.x**, **TFT_eSPI** and **ArduinoJson 7**.
-2. Copy the files in [`busstop/docs/library-config`](busstop/docs/library-config) into your Arduino
-   libraries: `TFT_eSPI_User_Setup.h` replaces `TFT_eSPI/User_Setup.h`, and `lv_conf.h` goes next to the
-   `lvgl` folder (`Documents/Arduino/libraries/lv_conf.h`). They hold the pin layout of this board.
-3. Get your own free key at [developer.vasttrafik.se](https://developer.vasttrafik.se) (create an
-   application and subscribe it to the Planera Resa v4 API). You enter it on the setup page in step 5,
-   so nothing secret lives in the code. (`secrets.example.h` is only an optional shortcut for developers.)
-4. Open `busstop/busstop.ino`, select the board and port, and upload by cable.
-   (The sketch folder must keep the name `busstop`.)
-5. On first start the screen says **Setup**. Join the WiFi `BusStop-Setup` with your phone, pick your
-   WiFi, enter your Västtrafik Client ID and secret, optionally choose an update password, pick your bus
-   stop, and save. (Without an update password, updates over WiFi stay off.)
+- Live departures with the real line colors. Delays are included in the minutes and cancelled buses are marked.
+- Clock with a blinking colon and correct summer/winter time. The temperature comes from
+  [Open-Meteo](https://open-meteo.com), with no key needed.
+- Screen brightness follows the time of day with smooth fades. Tap the screen to wake it.
+- **Set up from your phone:** choose WiFi, enter your Västtrafik key and pick your bus stop on a web page.
+  Nothing secret is in the code.
+- If the internet goes away it keeps counting down and shows "No connection".
+- Updates over WiFi, with Arduino IDE, the command line, or a small Mac app.
+
+## What you need
+
+- A **3.5" ESP32 display board (ESP32-3248S035C, capacitive touch)** and a USB data cable. Details and pins in
+  [docs/hardware.md](docs/hardware.md).
+- A **free Västtrafik key**: [docs/vasttrafik-api-key.md](docs/vasttrafik-api-key.md). Get it first.
+- A computer with **Windows, macOS or Linux**, and a phone.
+- Optional: the 3D-printed case in [`case/`](case).
+
+## Quick start
+
+1. Get your Västtrafik key.
+2. Follow **[docs/getting-started.md](docs/getting-started.md)**. It covers Arduino IDE, the board package, the
+   libraries and uploading, for Windows, macOS and Linux.
+3. Join the WiFi `BusStop-Setup` with your phone and fill in the setup page.
 
 ## Using it
 
@@ -40,32 +45,38 @@ Västtrafik stop, the clock, the date and the outside temperature.
 | Hold the screen for 4 seconds | Open the setup page again |
 | Press BOOT within 2 seconds after power-on | Open the setup page |
 
-If the WiFi is gone for 15 minutes, the setup page opens by itself.
+If the WiFi is gone for 15 minutes, the setup page opens by itself. Trouble? See
+[docs/troubleshooting.md](docs/troubleshooting.md).
 
-## Updating over WiFi
+## Updating the code
 
-- **Mac app:** download [`Bus-Stop-Updater.zip`](busstop/tools/BusStopUpdater/Bus-Stop-Updater.zip)
-  (Apple Silicon Macs), unzip it and drag *Bus Stop Updater* to Applications. The app is not notarized,
-  so the first time use right-click > Open (or run `xattr -dr com.apple.quarantine "Bus Stop Updater.app"`).
-  Or build it yourself with `busstop/tools/BusStopUpdater/build.sh`, which also refreshes the zip.
-  Then open *Bus Stop Updater*, choose the `.ino`, enter the display's IP address (or press *Find*) and press
-  *Update display*. Enter the update password you chose on the setup page under *Advanced* (the app
-  remembers it).
-- **Command line:** `busstop/update.sh` (WiFi, with `BUSSTOP_OTA_PASSWORD` set) or `busstop/update.sh cable` (USB).
+See **[docs/updating.md](docs/updating.md)**: USB cable, over WiFi from Arduino IDE, `arduino-cli`, or the
+macOS app.
 
-Both need Arduino IDE installed (they use its compiler).
+## Customizing
 
-## Code map
+Most settings are in [`busstop/config.h`](busstop/config.h):
 
-| File | What it does |
+- **Weather location:** the latitude and longitude in `kWeatherUrl` (default: Göteborg). Change them to your town.
+- **Brightness** by time of day, how long a tap wakes the screen, how often data is refreshed.
+
+## Project layout
+
+| Path | What it is |
 | --- | --- |
-| `busstop.ino` | `setup()` and `loop()` |
-| `config.h` | All settings: intervals, brightness, touch, timezone |
-| `secrets.h` | Optional developer defaults (not in git) |
-| `ui.*`, `src/fonts` | Screen layout and the Montserrat fonts with å ä ö |
-| `vasttrafik.*`, `weather.*` | The two web APIs |
-| `time_service.*`, `iso_time.h` | NTP, summer/winter time, time math |
-| `backlight.*`, `gt911.*`, `touch.*` | Brightness, touch chip, taps and long presses |
-| `setup_portal.*`, `setup_page.h`, `settings.*` | Phone setup page and saved settings |
-| `wifi_manager.*`, `ota.*` | WiFi and updates over WiFi |
-| `tools/BusStopUpdater` | The Mac update app (SwiftUI) |
+| `busstop/` | The Arduino sketch (the firmware). Keep the folder name. |
+| `busstop/tools/BusStopUpdater/` | The macOS update app (SwiftUI) and its zip |
+| `docs/` | Guides, and the settings files for the screen libraries |
+| `case/` | The 3D-printable case |
+
+Code map: `busstop.ino` runs everything. `ui.*` draws the screen, `vasttrafik.*` and `weather.*` fetch data,
+`time_service.*` and `iso_time.h` handle time, `backlight.*`, `gt911.*` and `touch.*` handle brightness and
+touch, `setup_portal.*` and `setup_page.h` are the phone setup page, `wifi_manager.*` and `ota.*` do WiFi and
+updates.
+
+## License and credits
+
+- Code: [MIT License](LICENSE). 3D case: [CC BY-SA 4.0](case/LICENSE).
+- Uses LVGL, TFT_eSPI, ArduinoJson, the Montserrat font and the Open-Meteo weather data, which keep their own
+  licenses: see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+- Want to help? See [CONTRIBUTING.md](CONTRIBUTING.md).
