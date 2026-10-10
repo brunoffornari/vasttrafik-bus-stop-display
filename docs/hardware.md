@@ -4,10 +4,26 @@
 
 | Part | Notes |
 | --- | --- |
-| **3.5" ESP32 display board with a 480x320 ST7796 screen and GT911 capacitive touch** | Commonly sold as **ESP32-3248S035C**. The **C** is the *capacitive* touch version, which this project supports. The **R** version has *resistive* touch (XPT2046) and is **not** supported. If you are unsure, check that the listing says GT911 or "capacitive". |
+| **3.5" ESP32 display board: 480x320 ST7796 screen, GT911 capacitive touch** | See "The board this was built on" below. Boards of this type are often called **ESP32-3248S035C** (the **C** means *capacitive* touch). The **R** version has *resistive* touch (XPT2046) and is **not** supported. |
 | USB cable that carries **data** | Charge-only cables will not show up as a serial port. |
 | 5 V USB power supply | Any phone charger works. |
 | 3D-printed case | Files and print notes in [`case/`](../case). Optional. |
+
+## The board this was built on
+
+Built and tested on a 3.5-inch board from AliExpress: the **3.5 inch** option of the listing
+["2.4/2.8/3.5 inch LCD TFT Module ESP32 Arduino LVGL"](https://www.aliexpress.com/item/1005009795213070.html)
+by the seller *AITEWIN ROBOT* (bought in 2026, about 250 kr). Be careful:
+
+- The listing **does not state the exact model or the touch chip**. The board that arrived has an ST7796 screen
+  and a **GT911** touch chip (I²C address `0x5D`), with the pins in the table below.
+- The same listing sells 2.4" and 2.8" boards, which do **not** work with this project.
+- One reviewer of that listing writes that almost no firmware works on the 3.5-inch version. Sellers also
+  change parts without notice, so **compare your board with the pin table** before blaming the code.
+
+**Buying in Sweden:** as of October 2026 no Swedish shop that could be found sold this board. Opencircuit sells a
+different 3.5-inch board (LILYGO LILY Pi) with another touch chip (FT6x36), which would need code changes. If
+you find a Swedish shop for this board, please open an issue or a pull request and add it here.
 
 ## What the board has (as used by this project)
 

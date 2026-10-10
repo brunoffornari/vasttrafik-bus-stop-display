@@ -1,6 +1,6 @@
 # 3D-printed case
 
-A case for the 3.5" ESP32 display board (ESP32-3248S035C), made to sit on a shelf or hallway table.
+A case for the 3.5" ESP32 display board described in [docs/hardware.md](../docs/hardware.md), made to sit on a shelf or hallway table.
 
 <!-- TODO (maintainer): add photos of the printed case, e.g. case/photos/case.jpg, and show one here. -->
 

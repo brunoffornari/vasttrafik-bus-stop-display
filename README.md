@@ -24,8 +24,8 @@ Swedish time (CET/CEST). It will not work for other transport companies or count
 
 ## What you need
 
-- A **3.5" ESP32 display board (ESP32-3248S035C, capacitive touch)** and a USB data cable. Details and pins in
-  [docs/hardware.md](docs/hardware.md).
+- A **3.5" ESP32 display board** (480x320, ST7796 screen, GT911 capacitive touch) and a USB data cable. Which
+  board it was built on, where to buy it, and the pins: [docs/hardware.md](docs/hardware.md).
 - A **free Västtrafik key**: [docs/vasttrafik-api-key.md](docs/vasttrafik-api-key.md). Get it first.
 - A computer with **Windows, macOS or Linux**, and a phone.
 - Optional: the 3D-printed case in [`case/`](case).
