@@ -83,4 +83,4 @@ updates.
 - Code: [MIT License](LICENSE). 3D case and photos: [CC BY-SA 4.0](case/LICENSE).
 - Uses LVGL, TFT_eSPI, ArduinoJson, the Montserrat font and the Open-Meteo weather data, which keep their own
   licenses: see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-- Want to help? See [CONTRIBUTING.md](CONTRIBUTING.md).
+- Using or copying it, and what to do if something does not work: see [CONTRIBUTING.md](CONTRIBUTING.md).
