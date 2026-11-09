@@ -154,7 +154,7 @@ async function search() {
 async function save() {
   if (!chosenStop) return;
   $('save').disabled = true;
-  const body = new URLSearchParams({ stopId: chosenStop.id });
+  const body = new URLSearchParams({ stopId: chosenStop.id, lat: chosenStop.lat || 0, lon: chosenStop.lon || 0 });
   try {
     await fetch('/save', { method: 'POST', body: body });
     $('step2').innerHTML = '<h2>All set!</h2><p>The bus stop display is restarting with <b>' +

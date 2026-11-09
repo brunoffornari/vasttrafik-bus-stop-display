@@ -129,6 +129,8 @@ int searchStops(const String &query, StopMatch *results, int maxResults) {
   StaticJsonDocument<128> filter;
   filter["results"][0]["gid"] = true;
   filter["results"][0]["name"] = true;
+  filter["results"][0]["latitude"] = true;
+  filter["results"][0]["longitude"] = true;
 
   DynamicJsonDocument doc(4096);
   DeserializationError error = deserializeJson(doc, https.getString(), DeserializationOption::Filter(filter));
@@ -143,6 +145,8 @@ int searchStops(const String &query, StopMatch *results, int maxResults) {
     if (count >= maxResults) break;
     results[count].id = item["gid"].as<String>();
     results[count].name = item["name"].as<String>();
+    results[count].latitude = item["latitude"] | 0.0f;
+    results[count].longitude = item["longitude"] | 0.0f;
     count++;
   }
   return count;

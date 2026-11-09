@@ -20,7 +20,7 @@ Swedish time (CET/CEST). It will not work for other transport companies or count
 - Live departures with the real line colors. Delays are included in the minutes and cancelled buses are marked.
 - Clock with a blinking colon and correct summer/winter time. The temperature comes from
   [Open-Meteo](https://open-meteo.com), with no key needed.
-- Screen brightness follows the time of day with smooth fades. Tap the screen to wake it.
+- Screen is at full brightness all the time. Dimming at night is optional in `config.h` (tap the screen to wake it).
 - **Set up from your phone:** choose WiFi, enter your Västtrafik key and pick your bus stop on a web page.
   Nothing secret is in the code.
 - If the internet goes away it keeps counting down and shows "No connection".
@@ -45,7 +45,7 @@ Swedish time (CET/CEST). It will not work for other transport companies or count
 
 | Do this | To get this |
 | --- | --- |
-| Tap the screen | Full brightness for 30 seconds |
+| Tap the screen | Wakes the screen if you set night dimming |
 | Hold the screen for 4 seconds | Open the setup page again |
 | Press BOOT within 2 seconds after power-on | Open the setup page |
 
@@ -61,8 +61,8 @@ macOS app.
 
 Most settings are in [`busstop/config.h`](busstop/config.h):
 
-- **Weather location:** the latitude and longitude in `kWeatherUrl` (default: Göteborg). Change them to your town.
-- **Brightness** by time of day, how long a tap wakes the screen, how often data is refreshed.
+- **Weather location:** automatic. It uses the position of the stop you pick (Göteborg until one is saved).
+- **Brightness** (default: always full; set `kBrightnessNight` lower to dim at night), how long a tap wakes the screen, how often data is refreshed.
 
 ## Project layout
 

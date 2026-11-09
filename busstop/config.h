@@ -19,8 +19,8 @@ constexpr int kLedPins[] = {4, 16, 17};
 
 // --- Backlight (brightness follows the time of day) ---------------------------
 constexpr int kBacklightPin = 27;  // same pin as TFT_BL in TFT_eSPI's User_Setup.h
-constexpr float kBrightnessDay = 70.0f;    // percent
-constexpr float kBrightnessNight = 20.0f;  // percent
+constexpr float kBrightnessDay = 100.0f;    // percent
+constexpr float kBrightnessNight = 100.0f;  // percent
 constexpr int kMorningFadeStartMin = 6 * 60;   // 06:00 night -> day
 constexpr int kDayStartMin = 7 * 60;           // 07:00 full day brightness
 constexpr int kEveningFadeStartMin = 20 * 60;  // 20:00 day -> night
@@ -60,8 +60,10 @@ constexpr int kMaxRetries = 3;
 constexpr unsigned long kDepartureIntervalMs = 15UL * 1000UL;
 
 // --- Weather (Open-Meteo, no API key needed) -------------------------------
-static const char *const kWeatherUrl =
-    "https://api.open-meteo.com/v1/forecast?latitude=57.7089&longitude=11.9746&current=temperature_2m";
+// The weather location is the chosen stop's position. Göteborg is used until one is saved.
+static const char *const kWeatherUrlBase = "https://api.open-meteo.com/v1/forecast?current=temperature_2m";
+constexpr float kDefaultLatitude = 57.7089f;
+constexpr float kDefaultLongitude = 11.9746f;
 constexpr unsigned long kWeatherIntervalMs = 10UL * 60UL * 1000UL;  // 10 minutes
 constexpr unsigned long kWeatherRetryMs = 30UL * 1000UL;            // after a failure
 

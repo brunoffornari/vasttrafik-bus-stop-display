@@ -11,6 +11,8 @@ struct Settings {
   String clientId;      // Västtrafik API key (from developer.vasttrafik.se)
   String clientSecret;
   String otaPassword;   // empty = updates over WiFi are off
+  float latitude = 0;   // stop position, for the weather (0 = not saved yet)
+  float longitude = 0;
 };
 
 // Returns true if a complete set of settings was found.

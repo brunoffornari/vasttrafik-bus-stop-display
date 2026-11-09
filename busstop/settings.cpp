@@ -22,6 +22,8 @@ bool settingsLoad(Settings &settings) {
     settings.clientId = prefs.getString("clientId", "");
     settings.clientSecret = prefs.getString("clientSecret", "");
     settings.otaPassword = prefs.getString("otaPassword", "");
+    settings.latitude = prefs.getFloat("lat", 0);
+    settings.longitude = prefs.getFloat("lon", 0);
     prefs.end();
   }
 
@@ -44,5 +46,7 @@ void settingsSave(const Settings &settings) {
   prefs.putString("clientId", settings.clientId);
   prefs.putString("clientSecret", settings.clientSecret);
   prefs.putString("otaPassword", settings.otaPassword);
+  prefs.putFloat("lat", settings.latitude);
+  prefs.putFloat("lon", settings.longitude);
   prefs.end();
 }

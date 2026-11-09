@@ -134,12 +134,14 @@ void handleStops() {
     return;
   }
 
-  DynamicJsonDocument doc(2048);
+  DynamicJsonDocument doc(3072);
   JsonArray list = doc.to<JsonArray>();
   for (int i = 0; i < count; i++) {
     JsonObject item = list.createNestedObject();
     item["id"] = matches[i].id;
     item["name"] = matches[i].name;
+    item["lat"] = matches[i].latitude;
+    item["lon"] = matches[i].longitude;
   }
   sendJson(doc);
 }
@@ -159,6 +161,8 @@ void handleSave() {
   settings.clientId = pendingClientId;
   settings.clientSecret = pendingClientSecret;
   settings.otaPassword = pendingOtaPassword;
+  settings.latitude = server.arg("lat").toFloat();
+  settings.longitude = server.arg("lon").toFloat();
   settingsSave(settings);
   Serial.println("Setup: settings saved, restarting");
   uiSetSetupStatus("Saved! Restarting...");

@@ -34,6 +34,8 @@ enum class FetchResult {
 struct StopMatch {
   String id;    // stop area gid
   String name;  // e.g. "Gräddgatan, Göteborg"
+  float latitude = 0;
+  float longitude = 0;
 };
 
 // Sets the API key used by requestToken().

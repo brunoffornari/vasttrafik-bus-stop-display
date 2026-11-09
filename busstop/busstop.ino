@@ -219,6 +219,7 @@ void setup() {
   wifiSetCredentials(settings.ssid, settings.password);
   setCredentials(settings.clientId, settings.clientSecret);
   setStopId(settings.stopId);
+  setWeatherLocation(settings.latitude, settings.longitude);
   if (!ensureWiFiConnected()) {
     Serial.println("WiFi connection failed, opening setup");
     runSetupPortal();
