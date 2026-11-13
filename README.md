@@ -46,7 +46,7 @@ Swedish time (CET/CEST). It will not work for other transport companies or count
 
 | Do this | To get this |
 | --- | --- |
-| Tap or swipe the screen | Next page (departures, weather, digital clock, analog clock). Goes back to departures after 2 minutes |
+| Tap or swipe the screen | Next page (departures, weather, digital clock, analog clock). The page stays until you change it |
 | Hold the screen for 4 seconds | Open the setup page again |
 | Press BOOT within 2 seconds after power-on | Open the setup page |
 

@@ -42,7 +42,6 @@ constexpr bool kTouchSwipeInvert = false;
 constexpr int kSwipeMinPx = 60;
 constexpr int kTapSlopPx = 25;
 constexpr unsigned long kTapMaxMs = 600;
-constexpr unsigned long kPageReturnMs = 2UL * 60UL * 1000UL;  // back to the bus page after no touch
 
 // --- Connection health -----------------------------------------------------------
 constexpr unsigned long kStaleAfterMs = 90UL * 1000UL;          // no fresh data -> "No connection"

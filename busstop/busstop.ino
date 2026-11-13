@@ -84,13 +84,10 @@ void updateNotice(unsigned long now) {
   }
 }
 
-unsigned long lastTouchMs = 0;
-
 void handleTouch(unsigned long now) {
   touchPoll();
   if (touchWasPressed()) {
     backlightWake();
-    lastTouchMs = now;
   }
 
   switch (touchGesture()) {
@@ -104,8 +101,6 @@ void handleTouch(unsigned long now) {
     case Gesture::None:
       break;
   }
-  // Go back to the departures after a while
-  if (uiPage() != 0 && now - lastTouchMs > config::kPageReturnMs) uiShowPage(0);
 
   updateNotice(now);
   if (touchHeldMs() >= config::kSetupHoldMs) {
