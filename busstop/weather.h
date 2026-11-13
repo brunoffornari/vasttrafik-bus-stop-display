@@ -17,6 +17,12 @@ struct ForecastDay {
 struct Weather {
   int currentC = 0;
   int currentCode = 0;
+  bool isDay = true;
+  int feelsC = 0;
+  int humidity = 0;      // %
+  int windMs = 0;        // m/s
+  char sunrise[6] = "";  // "07:42"
+  char sunset[6] = "";
   ForecastDay days[config::kForecastDays];
   int dayCount = 0;
 };

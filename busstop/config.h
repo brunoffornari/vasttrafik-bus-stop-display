@@ -69,8 +69,9 @@ constexpr unsigned long kDepartureIntervalMs = 15UL * 1000UL;
 // --- Weather (Open-Meteo, no API key needed) -------------------------------
 // The weather location is the chosen stop's position. Göteborg is used until one is saved.
 static const char *const kWeatherUrlBase =
-    "https://api.open-meteo.com/v1/forecast?current=temperature_2m,weather_code"
-    "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max"
+    "https://api.open-meteo.com/v1/forecast?current=temperature_2m,weather_code,is_day,apparent_temperature,"
+    "relative_humidity_2m,wind_speed_10m&wind_speed_unit=ms"
+    "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset"
     "&timezone=Europe%2FStockholm&forecast_days=5";
 constexpr int kForecastDays = 5;
 constexpr float kDefaultLatitude = 57.7089f;

@@ -33,7 +33,7 @@ bool fetchWeather(Weather &weather) {
     return false;
   }
 
-  DynamicJsonDocument doc(4096);
+  DynamicJsonDocument doc(6144);
   DeserializationError error = deserializeJson(doc, https.getString());
   https.end();
 
@@ -46,6 +46,14 @@ bool fetchWeather(Weather &weather) {
   Weather result;
   result.currentC = (int)lroundf(doc["current"]["temperature_2m"].as<float>());
   result.currentCode = doc["current"]["weather_code"] | 0;
+  result.isDay = (doc["current"]["is_day"] | 1) != 0;
+  result.feelsC = (int)lroundf(doc["current"]["apparent_temperature"] | doc["current"]["temperature_2m"].as<float>());
+  result.humidity = (int)lroundf(doc["current"]["relative_humidity_2m"] | 0.0f);
+  result.windMs = (int)lroundf(doc["current"]["wind_speed_10m"] | 0.0f);
+  const char *rise = doc["daily"]["sunrise"][0] | "";
+  const char *set = doc["daily"]["sunset"][0] | "";
+  if (strlen(rise) >= 16) strlcpy(result.sunrise, rise + 11, sizeof(result.sunrise));
+  if (strlen(set) >= 16) strlcpy(result.sunset, set + 11, sizeof(result.sunset));
   for (size_t i = 0; i < dates.size() && result.dayCount < config::kForecastDays; i++) {
     ForecastDay &d = result.days[result.dayCount++];
     strlcpy(d.date, dates[i] | "", sizeof(d.date));
