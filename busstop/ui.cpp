@@ -4,6 +4,7 @@
 
 #include "config.h"
 #include "src/fonts/fonts.h"
+#include "ui_extra.h"
 
 namespace {
 
@@ -63,6 +64,9 @@ lv_obj_t *clockMinutes = nullptr;
 lv_obj_t *tempLabel = nullptr;
 lv_obj_t *statusLabel = nullptr;
 lv_obj_t *setupStatusLabel = nullptr;
+lv_obj_t *pages[kUiPageCount] = {};
+lv_obj_t *pageDots[kUiPageCount] = {};
+int currentPage = 0;
 
 // --- Helpers ---------------------------------------------------------------
 lv_obj_t *makeLabel(lv_obj_t *parent, const lv_font_t *font, uint32_t color, const char *text = "") {
@@ -111,7 +115,7 @@ uint32_t minutesColor(int minutes) {
 void createRow(int index) {
   Row &r = rows[index];
 
-  r.card = makeBox(lv_scr_act(), kCardWidth, kRowHeight, kColorCard, 10);
+  r.card = makeBox(pages[0], kCardWidth, kRowHeight, kColorCard, 10);
   lv_obj_set_pos(r.card, kMargin, kRowsTop + index * kRowPitch);
   lv_obj_add_flag(r.card, LV_OBJ_FLAG_HIDDEN);
 
@@ -143,6 +147,26 @@ void showStatusLabel(bool visible) {
   else lv_obj_add_flag(statusLabel, LV_OBJ_FLAG_HIDDEN);
 }
 
+lv_obj_t *makePage() {
+  lv_obj_t *page = lv_obj_create(lv_scr_act());
+  lv_obj_set_size(page, config::kScreenWidth, config::kScreenHeight);
+  lv_obj_set_pos(page, 0, 0);
+  lv_obj_set_style_bg_opa(page, LV_OPA_TRANSP, 0);
+  lv_obj_set_style_border_width(page, 0, 0);
+  lv_obj_set_style_radius(page, 0, 0);
+  lv_obj_set_style_pad_all(page, 0, 0);
+  lv_obj_clear_flag(page, LV_OBJ_FLAG_SCROLLABLE);
+  return page;
+}
+
+void updateDots() {
+  for (int i = 0; i < kUiPageCount; i++) {
+    if (!pageDots[i]) continue;
+    lv_obj_set_style_bg_color(pageDots[i], lv_color_hex(i == currentPage ? kColorAccent : kColorStale), 0);
+    lv_obj_set_style_bg_opa(pageDots[i], i == currentPage ? LV_OPA_COVER : LV_OPA_50, 0);
+  }
+}
+
 void styleScreen() {
   lv_obj_t *screen = lv_scr_act();
   lv_obj_set_style_bg_color(screen, lv_color_hex(kColorBackground), 0);
@@ -157,7 +181,8 @@ void styleScreen() {
 
 void uiCreate() {
   styleScreen();
-  lv_obj_t *screen = lv_scr_act();
+  for (int i = 0; i < kUiPageCount; i++) pages[i] = makePage();
+  lv_obj_t *screen = pages[0];  // departures page
 
   // Header: stop name + date (left), clock + temperature (right)
   stopLabel = makeLabel(screen, FONT_MEDIUM, kColorTextPrimary, "Loading Stop");
@@ -203,6 +228,38 @@ void uiCreate() {
   lv_obj_set_width(statusLabel, kCardWidth);
   lv_obj_set_style_text_align(statusLabel, LV_TEXT_ALIGN_CENTER, 0);
   lv_obj_align(statusLabel, LV_ALIGN_CENTER, 0, 36);
+
+  uiExtraCreate(pages[1], pages[2], pages[3]);
+
+  // Page dots, small, on the right edge (on top of every page)
+  for (int i = 0; i < kUiPageCount; i++) {
+    pageDots[i] = makeBox(lv_layer_top(), 6, 6, kColorStale, LV_RADIUS_CIRCLE);
+    lv_obj_set_pos(pageDots[i], config::kScreenWidth - 9, config::kScreenHeight / 2 - 28 + i * 14);
+  }
+  uiShowPage(0);
+}
+
+void uiShowPage(int page) {
+  if (!pages[0]) return;
+  page = ((page % kUiPageCount) + kUiPageCount) % kUiPageCount;
+  currentPage = page;
+  for (int i = 0; i < kUiPageCount; i++) {
+    if (i == page) lv_obj_clear_flag(pages[i], LV_OBJ_FLAG_HIDDEN);
+    else lv_obj_add_flag(pages[i], LV_OBJ_FLAG_HIDDEN);
+  }
+  updateDots();
+}
+
+int uiPage() {
+  return currentPage;
+}
+
+void uiSetWeather(const Weather *weather) {
+  uiExtraSetWeather(weather);
+}
+
+void uiSetTimeDetail(int hour, int minute, int second, bool colonVisible, const String &date) {
+  uiExtraSetTime(hour, minute, second, colonVisible, date);
 }
 
 void uiSetStopName(const String &name) {
@@ -323,6 +380,9 @@ void uiSetStatus(const String &message) {
 void uiCreateSetup(const char *accessPointName) {
   lv_obj_t *screen = lv_scr_act();
   lv_obj_clean(screen);  // remove the main screen (when opened from a long press)
+  lv_obj_clean(lv_layer_top());
+  for (int i = 0; i < kUiPageCount; i++) pages[i] = pageDots[i] = nullptr;
+  uiExtraReset();
   styleScreen();
   stopLabel = dateLabel = noticeLabel = clockHours = clockColon = clockMinutes = tempLabel = statusLabel = nullptr;
 

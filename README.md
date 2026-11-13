@@ -20,6 +20,7 @@ Swedish time (CET/CEST). It will not work for other transport companies or count
 - Live departures with the real line colors. Delays are included in the minutes and cancelled buses are marked.
 - Clock with a blinking colon and correct summer/winter time. The temperature comes from
   [Open-Meteo](https://open-meteo.com), with no key needed.
+- Four pages: departures, weather forecast, digital clock, analog clock. Tap or swipe the screen to change page.
 - Screen is at full brightness all the time. Dimming at night is optional in `config.h` (tap the screen to wake it).
 - **Set up from your phone:** choose WiFi, enter your Västtrafik key and pick your bus stop on a web page.
   Nothing secret is in the code.
@@ -45,7 +46,7 @@ Swedish time (CET/CEST). It will not work for other transport companies or count
 
 | Do this | To get this |
 | --- | --- |
-| Tap the screen | Wakes the screen if you set night dimming |
+| Tap or swipe the screen | Next page (departures, weather, digital clock, analog clock). Goes back to departures after 2 minutes |
 | Hold the screen for 4 seconds | Open the setup page again |
 | Press BOOT within 2 seconds after power-on | Open the setup page |
 

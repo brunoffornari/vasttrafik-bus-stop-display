@@ -15,7 +15,8 @@
 //   wifi_manager     - WiFi connection, shared HTTPS client
 //   time_service     - NTP (daily re-sync), summer/winter time, time math
 //   vasttrafik       - OAuth2 token and departures
-//   weather          - temperature from Open-Meteo
+//   ui_extra         - weather, digital clock and analog clock pages
+//   weather          - temperature and forecast from Open-Meteo
 //   settings         - WiFi + stop saved on the device
 //   setup_portal     - phone setup page (hotspot "BusStop-Setup")
 //   ota              - firmware updates over WiFi
@@ -51,6 +52,7 @@ DepartureBoard shownBoard;       // last good departures (kept while offline)
 bool boardValid = false;
 unsigned long lastGoodFetchMs = 0;
 
+Weather currentWeather;
 bool weatherOk = false;          // false = retry sooner
 unsigned long lastWeatherSuccessMs = 0;
 
@@ -82,9 +84,28 @@ void updateNotice(unsigned long now) {
   }
 }
 
+unsigned long lastTouchMs = 0;
+
 void handleTouch(unsigned long now) {
   touchPoll();
-  if (touchWasPressed()) backlightWake();
+  if (touchWasPressed()) {
+    backlightWake();
+    lastTouchMs = now;
+  }
+
+  switch (touchGesture()) {
+    case Gesture::Tap:
+    case Gesture::SwipeLeft:
+      uiShowPage(uiPage() + 1);
+      break;
+    case Gesture::SwipeRight:
+      uiShowPage(uiPage() - 1);
+      break;
+    case Gesture::None:
+      break;
+  }
+  // Go back to the departures after a while
+  if (uiPage() != 0 && now - lastTouchMs > config::kPageReturnMs) uiShowPage(0);
 
   updateNotice(now);
   if (touchHeldMs() >= config::kSetupHoldMs) {
@@ -187,10 +208,10 @@ void updateDepartures(unsigned long now) {
 // --- Weather -------------------------------------------------------------------
 
 void updateWeather(unsigned long now) {
-  int celsius;
-  weatherOk = fetchTemperature(celsius);
+  weatherOk = fetchWeather(currentWeather);
   if (weatherOk) {
-    uiSetTemperature(celsius);
+    uiSetTemperature(currentWeather.currentC);
+    uiSetWeather(&currentWeather);
     lastWeatherSuccessMs = now;
   }
 }
@@ -231,6 +252,9 @@ void setup() {
   requestToken();
 
   uiCreate();
+  lv_mem_monitor_t mem;
+  lv_mem_monitor(&mem);
+  Serial.printf("LVGL memory: %u of %u bytes free\n", (unsigned)mem.free_size, (unsigned)(mem.total_size));
   uiSetClock(localTimeString());
   uiSetDate(localDateString());
   updateWeather(millis());
@@ -250,8 +274,13 @@ void loop() {
     uiSetClockColon(colonVisible);
     uiSetClock(localTimeString());
     uiSetDate(localDateString());
+    struct tm local;
+    if (localTimeNow(local)) uiSetTimeDetail(local.tm_hour, local.tm_min, local.tm_sec, colonVisible, localDateString());
     renderBoard(now);
-    if (lastWeatherSuccessMs != 0 && now - lastWeatherSuccessMs > config::kWeatherMaxAgeMs) uiSetTemperatureUnknown();
+    if (lastWeatherSuccessMs != 0 && now - lastWeatherSuccessMs > config::kWeatherMaxAgeMs) {
+      uiSetTemperatureUnknown();
+      uiSetWeather(nullptr);
+    }
     lastClockUpdate = now;
   }
 

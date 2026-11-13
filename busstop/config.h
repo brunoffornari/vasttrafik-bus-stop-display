@@ -35,6 +35,14 @@ constexpr int kTouchResetPin = 25;
 constexpr unsigned long kTouchWakeMs = 30UL * 1000UL;   // tap = full brightness for this long
 constexpr unsigned long kSetupHintHoldMs = 1500;        // hold this long to see the hint
 constexpr unsigned long kSetupHoldMs = 4000;            // hold this long to open setup
+// Page swiping. Swipe left = next page. If swipes go the wrong way, flip kTouchSwipeInvert;
+// if they never register, flip kTouchSwipeUsesY.
+constexpr bool kTouchSwipeUsesY = true;
+constexpr bool kTouchSwipeInvert = false;
+constexpr int kSwipeMinPx = 60;
+constexpr int kTapSlopPx = 25;
+constexpr unsigned long kTapMaxMs = 600;
+constexpr unsigned long kPageReturnMs = 2UL * 60UL * 1000UL;  // back to the bus page after no touch
 
 // --- Connection health -----------------------------------------------------------
 constexpr unsigned long kStaleAfterMs = 90UL * 1000UL;          // no fresh data -> "No connection"
@@ -61,7 +69,11 @@ constexpr unsigned long kDepartureIntervalMs = 15UL * 1000UL;
 
 // --- Weather (Open-Meteo, no API key needed) -------------------------------
 // The weather location is the chosen stop's position. Göteborg is used until one is saved.
-static const char *const kWeatherUrlBase = "https://api.open-meteo.com/v1/forecast?current=temperature_2m";
+static const char *const kWeatherUrlBase =
+    "https://api.open-meteo.com/v1/forecast?current=temperature_2m,weather_code"
+    "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max"
+    "&timezone=Europe%2FStockholm&forecast_days=5";
+constexpr int kForecastDays = 5;
 constexpr float kDefaultLatitude = 57.7089f;
 constexpr float kDefaultLongitude = 11.9746f;
 constexpr unsigned long kWeatherIntervalMs = 10UL * 60UL * 1000UL;  // 10 minutes

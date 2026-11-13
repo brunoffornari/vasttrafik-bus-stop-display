@@ -4,7 +4,18 @@
 #pragma once
 #include <Arduino.h>
 
+#include "weather.h"
+
 void uiCreate();
+
+// Pages: 0 = departures, 1 = weather, 2 = digital clock, 3 = analog clock
+constexpr int kUiPageCount = 4;
+void uiShowPage(int page);  // wraps around
+int uiPage();
+
+// Weather page and clock pages. nullptr = no valid weather.
+void uiSetWeather(const Weather *weather);
+void uiSetTimeDetail(int hour, int minute, int second, bool colonVisible, const String &date);
 
 // Setup mode screen: tells the user how to open the setup page
 void uiCreateSetup(const char *accessPointName);

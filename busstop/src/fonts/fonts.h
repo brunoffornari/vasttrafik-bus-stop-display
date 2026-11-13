@@ -11,3 +11,8 @@
 LV_FONT_DECLARE(busstop_font_16)
 LV_FONT_DECLARE(busstop_font_24)
 LV_FONT_DECLARE(busstop_font_32)
+// Big digits only, for the clock and weather pages:
+//   --size 128 --range 0x30-0x3A  (busstop_font_clock: 0-9 and :)
+//   --size 64  --range 0x2D,0x30-0x39,0xB0,0x43  (busstop_font_temp: - 0-9 ° C)
+LV_FONT_DECLARE(busstop_font_clock)
+LV_FONT_DECLARE(busstop_font_temp)

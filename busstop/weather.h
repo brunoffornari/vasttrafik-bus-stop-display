@@ -1,9 +1,28 @@
 // ============================================================================
-// weather.h - Current temperature (Open-Meteo)
+// weather.h - Current temperature and 5-day forecast (Open-Meteo)
 // ============================================================================
 #pragma once
+#include <Arduino.h>
 
-// Gets the current temperature in °C (rounded). Returns false on failure.
-// latitude/longitude 0 = use the default location (Göteborg).
-bool fetchTemperature(int &celsius);
+#include "config.h"
+
+struct ForecastDay {
+  char date[11] = "";   // "2026-11-13"
+  int code = 0;         // WMO weather code
+  int maxC = 0;
+  int minC = 0;
+  int rainPercent = 0;  // chance of rain/snow
+};
+
+struct Weather {
+  int currentC = 0;
+  int currentCode = 0;
+  ForecastDay days[config::kForecastDays];
+  int dayCount = 0;
+};
+
+// Gets the weather. Returns false on failure (the old data stays valid then).
+bool fetchWeather(Weather &weather);
+
+// Sets where the weather is for. 0/0 keeps the default (Göteborg).
 void setWeatherLocation(float latitude, float longitude);

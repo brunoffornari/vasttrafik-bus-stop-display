@@ -18,7 +18,7 @@ void setWeatherLocation(float latitude, float longitude) {
   weatherLon = longitude;
 }
 
-bool fetchTemperature(int &celsius) {
+bool fetchWeather(Weather &weather) {
   String url = String(config::kWeatherUrlBase) + "&latitude=" + String(weatherLat, 4) + "&longitude=" + String(weatherLon, 4);
   HTTPClient https;
   if (!https.begin(secureClient, url)) {
@@ -33,16 +33,28 @@ bool fetchTemperature(int &celsius) {
     return false;
   }
 
-  DynamicJsonDocument doc(1024);
+  DynamicJsonDocument doc(4096);
   DeserializationError error = deserializeJson(doc, https.getString());
   https.end();
 
-  if (error || doc["current"]["temperature_2m"].isNull()) {
+  JsonArray dates = doc["daily"]["time"];
+  if (error || doc["current"]["temperature_2m"].isNull() || dates.isNull() || dates.size() == 0) {
     Serial.println("Weather parse error");
     return false;
   }
 
-  celsius = (int)lroundf(doc["current"]["temperature_2m"].as<float>());
-  Serial.printf("Temperature: %d C\n", celsius);
+  Weather result;
+  result.currentC = (int)lroundf(doc["current"]["temperature_2m"].as<float>());
+  result.currentCode = doc["current"]["weather_code"] | 0;
+  for (size_t i = 0; i < dates.size() && result.dayCount < config::kForecastDays; i++) {
+    ForecastDay &d = result.days[result.dayCount++];
+    strlcpy(d.date, dates[i] | "", sizeof(d.date));
+    d.code = doc["daily"]["weather_code"][i] | 0;
+    d.maxC = (int)lroundf(doc["daily"]["temperature_2m_max"][i].as<float>());
+    d.minC = (int)lroundf(doc["daily"]["temperature_2m_min"][i].as<float>());
+    d.rainPercent = doc["daily"]["precipitation_probability_max"][i] | 0;
+  }
+  weather = result;
+  Serial.printf("Temperature: %d C, %d forecast days\n", weather.currentC, weather.dayCount);
   return true;
 }
