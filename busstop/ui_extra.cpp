@@ -9,6 +9,7 @@
 namespace {
 
 constexpr uint32_t kColorCard = 0x13171D;
+constexpr uint32_t kColorFace = 0x0E1218;
 constexpr uint32_t kColorDivider = 0x232B36;
 constexpr uint32_t kColorTextPrimary = 0xF2F5F9;
 constexpr uint32_t kColorTextSecondary = 0x8A94A6;
@@ -197,22 +198,49 @@ const char *weekdayName(const char *date) {
 }
 
 // --- Widgets -----------------------------------------------------------------
-constexpr int kColumnWidth = 90;
-constexpr int kColumnsLeft = 15;
+constexpr int kCards = config::kForecastDays - 1;  // today is the big card, the rest are small cards
+constexpr int kCardWidth = 106;
+constexpr int kCardGap = 8;
 
-struct DayColumn {
+struct DayCard {
   lv_obj_t *name, *icon, *high, *low, *rain;
 };
 
-DayColumn columns[config::kForecastDays];
+DayCard cards[kCards];
 lv_obj_t *nowIcon = nullptr, *nowTemp = nullptr, *nowText = nullptr;
+lv_obj_t *nowHigh = nullptr, *nowLow = nullptr, *nowRain = nullptr;
 lv_obj_t *digitalHours = nullptr, *digitalColon = nullptr, *digitalMinutes = nullptr, *digitalBox = nullptr;
-lv_obj_t *digitalDate = nullptr, *digitalTemp = nullptr;
-lv_obj_t *analogFace = nullptr;
+lv_obj_t *digitalDate = nullptr, *digitalTemp = nullptr, *digitalText = nullptr, *digitalIcon = nullptr;
+lv_obj_t *analogFace = nullptr, *analogWeekday = nullptr, *analogDay = nullptr, *analogTemp = nullptr;
+lv_obj_t *analogIcon = nullptr;
 int clockHour = 0, clockMinute = 0, clockSecond = 0;
 
-constexpr int kFaceSize = 300;
+constexpr int kFaceSize = 284;
 constexpr float kFaceRadius = kFaceSize / 2.0f;
+
+lv_obj_t *makeCard(lv_obj_t *parent, int x, int y, int w, int h) {
+  lv_obj_t *card = lv_obj_create(parent);
+  lv_obj_set_size(card, w, h);
+  lv_obj_set_pos(card, x, y);
+  lv_obj_set_style_bg_color(card, lv_color_hex(kColorCard), 0);
+  lv_obj_set_style_bg_opa(card, LV_OPA_COVER, 0);
+  lv_obj_set_style_radius(card, 14, 0);
+  lv_obj_set_style_border_width(card, 0, 0);
+  lv_obj_set_style_pad_all(card, 0, 0);
+  lv_obj_clear_flag(card, LV_OBJ_FLAG_SCROLLABLE);
+  return card;
+}
+
+// Label with a fixed width and alignment, placed at (x, y).
+lv_obj_t *placeLabel(lv_obj_t *parent, const lv_font_t *font, uint32_t color, int x, int y, int width,
+                     lv_text_align_t align) {
+  lv_obj_t *label = makeLabel(parent, font, color);
+  lv_obj_set_width(label, width);
+  lv_label_set_long_mode(label, LV_LABEL_LONG_CLIP);
+  lv_obj_set_style_text_align(label, align, 0);
+  lv_obj_set_pos(label, x, y);
+  return label;
+}
 
 void hand(lv_draw_ctx_t *ctx, float cx, float cy, float angleDeg, float length, float tail, int width, uint32_t color) {
   float a = angleDeg * (float)M_PI / 180.0f;
@@ -229,58 +257,47 @@ void drawFace(lv_event_t *e) {
   for (int i = 0; i < 60; i++) {
     float a = i * (float)M_PI / 30;
     bool hour = i % 5 == 0;
-    float outer = kFaceRadius - 8, inner = outer - (hour ? 14 : 5);
+    float outer = kFaceRadius - 10, inner = outer - (hour ? 14 : 6);
     strokeLine(ctx, cx + sinf(a) * inner, cy - cosf(a) * inner, cx + sinf(a) * outer, cy - cosf(a) * outer,
-               hour ? 4 : 1, hour ? kColorTextPrimary : kColorTextSecondary);
+               hour ? 4 : 2, hour ? kColorTextPrimary : 0x4B5563);
   }
 
   float hourAngle = (clockHour % 12 + clockMinute / 60.0f) * 30.0f;
   float minuteAngle = (clockMinute + clockSecond / 60.0f) * 6.0f;
-  hand(ctx, cx, cy, hourAngle, kFaceRadius * 0.5f, 10, 7, kColorTextPrimary);
-  hand(ctx, cx, cy, minuteAngle, kFaceRadius * 0.78f, 12, 5, kColorTextPrimary);
-  hand(ctx, cx, cy, clockSecond * 6.0f, kFaceRadius * 0.86f, 22, 2, kColorSecondHand);
-  fillCircle(ctx, cx, cy, 8, kColorAccent);
+  hand(ctx, cx, cy, hourAngle, kFaceRadius * 0.5f, 12, 8, kColorTextPrimary);
+  hand(ctx, cx, cy, minuteAngle, kFaceRadius * 0.76f, 14, 6, kColorTextPrimary);
+  hand(ctx, cx, cy, clockSecond * 6.0f, kFaceRadius * 0.84f, 24, 3, kColorSecondHand);
+  fillCircle(ctx, cx, cy, 9, kColorSecondHand);
   fillCircle(ctx, cx, cy, 3, 0x000000);
 }
 
 void createWeatherPage(lv_obj_t *page) {
-  nowIcon = makeIcon(page, 110);
-  lv_obj_set_pos(nowIcon, 26, 14);
+  // Big card: now
+  lv_obj_t *hero = makeCard(page, 16, 12, 448, 116);
+  nowIcon = makeIcon(hero, 92);
+  lv_obj_set_pos(nowIcon, 16, 12);
   setIcon(nowIcon, kSun);
 
-  nowTemp = makeLabel(page, &busstop_font_temp, kColorTextPrimary, "--\xC2\xB0""C");
-  lv_obj_set_pos(nowTemp, 160, 16);
+  nowTemp = makeLabel(hero, &busstop_font_temp, kColorTextPrimary, "--\xC2\xB0""C");
+  lv_obj_set_pos(nowTemp, 124, 14);
+  nowText = placeLabel(hero, FONT_MEDIUM, kColorTextSecondary, 124, 70, 210, LV_TEXT_ALIGN_LEFT);
 
-  nowText = makeLabel(page, FONT_MEDIUM, kColorTextSecondary, "");
-  lv_obj_set_pos(nowText, 160, 92);
+  nowHigh = placeLabel(hero, FONT_MEDIUM, kColorTextPrimary, 340, 16, 92, LV_TEXT_ALIGN_RIGHT);
+  nowLow = placeLabel(hero, FONT_MEDIUM, kColorTextSecondary, 340, 48, 92, LV_TEXT_ALIGN_RIGHT);
+  nowRain = placeLabel(hero, FONT_SMALL, kColorRain, 340, 84, 92, LV_TEXT_ALIGN_RIGHT);
 
-  lv_obj_t *divider = lv_obj_create(page);
-  lv_obj_set_size(divider, config::kScreenWidth - 32, 1);
-  lv_obj_set_pos(divider, 16, 138);
-  lv_obj_set_style_bg_color(divider, lv_color_hex(kColorDivider), 0);
-  lv_obj_set_style_border_width(divider, 0, 0);
-  lv_obj_set_style_radius(divider, 0, 0);
-
-  for (int i = 0; i < config::kForecastDays; i++) {
-    DayColumn &c = columns[i];
-    int x = kColumnsLeft + i * kColumnWidth;
-    auto centered = [&](lv_obj_t *label, int y) {
-      lv_obj_set_width(label, kColumnWidth);
-      lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
-      lv_obj_set_pos(label, x, y);
-    };
-    c.name = makeLabel(page, FONT_SMALL, kColorTextSecondary);
-    centered(c.name, 150);
-    c.icon = makeIcon(page, 56);
-    lv_obj_set_pos(c.icon, x + (kColumnWidth - 56) / 2, 174);
+  // Next days
+  for (int i = 0; i < kCards; i++) {
+    DayCard &c = cards[i];
+    int x = 16 + i * (kCardWidth + kCardGap);
+    lv_obj_t *card = makeCard(page, x, 140, kCardWidth, 156);
+    c.name = placeLabel(card, FONT_SMALL, kColorTextSecondary, 0, 10, kCardWidth, LV_TEXT_ALIGN_CENTER);
+    c.icon = makeIcon(card, 52);
+    lv_obj_set_pos(c.icon, (kCardWidth - 52) / 2, 32);
     setIcon(c.icon, kCloud);
-    lv_obj_add_flag(c.icon, LV_OBJ_FLAG_HIDDEN);
-    c.high = makeLabel(page, FONT_MEDIUM, kColorTextPrimary);
-    centered(c.high, 238);
-    c.low = makeLabel(page, FONT_SMALL, kColorTextSecondary);
-    centered(c.low, 270);
-    c.rain = makeLabel(page, FONT_SMALL, kColorRain);
-    centered(c.rain, 292);
+    c.high = placeLabel(card, FONT_MEDIUM, kColorTextPrimary, 0, 88, kCardWidth, LV_TEXT_ALIGN_CENTER);
+    c.low = placeLabel(card, FONT_SMALL, kColorTextSecondary, 0, 118, kCardWidth, LV_TEXT_ALIGN_CENTER);
+    c.rain = placeLabel(card, FONT_SMALL, kColorRain, 0, 134, kCardWidth, LV_TEXT_ALIGN_CENTER);
   }
 }
 
@@ -295,8 +312,7 @@ void placeDigital() {
   lv_txt_get_size(&h, hours, &busstop_font_clock, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
   lv_txt_get_size(&c, ":", &busstop_font_clock, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
   lv_txt_get_size(&m, minutes, &busstop_font_clock, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
-  int total = h.x + c.x + m.x;
-  int x = (lv_obj_get_width(digitalBox) - total) / 2;
+  int x = (lv_obj_get_width(digitalBox) - (h.x + c.x + m.x)) / 2;
   lv_obj_set_width(digitalHours, h.x);
   lv_obj_set_pos(digitalHours, x, 0);
   lv_obj_set_pos(digitalColon, x + h.x, 0);
@@ -309,53 +325,66 @@ void createDigitalPage(lv_obj_t *page) {
   lv_txt_get_size(&size, "00", &busstop_font_clock, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
   digitalBox = lv_obj_create(page);
   lv_obj_set_size(digitalBox, config::kScreenWidth, size.y);
-  lv_obj_set_pos(digitalBox, 0, 4);
+  lv_obj_set_pos(digitalBox, 0, 28);
   lv_obj_set_style_bg_opa(digitalBox, LV_OPA_TRANSP, 0);
   lv_obj_set_style_border_width(digitalBox, 0, 0);
   lv_obj_set_style_pad_all(digitalBox, 0, 0);
   lv_obj_clear_flag(digitalBox, LV_OBJ_FLAG_SCROLLABLE);
 
   digitalHours = makeLabel(digitalBox, &busstop_font_clock, kColorTextPrimary, "00");
-  digitalColon = makeLabel(digitalBox, &busstop_font_clock, kColorTextPrimary, ":");
+  digitalColon = makeLabel(digitalBox, &busstop_font_clock, kColorAccent, ":");
   digitalMinutes = makeLabel(digitalBox, &busstop_font_clock, kColorTextPrimary, "00");
   placeDigital();
 
-  digitalDate = makeLabel(page, FONT_LARGE, kColorTextSecondary);
-  lv_obj_set_width(digitalDate, config::kScreenWidth);
-  lv_obj_set_style_text_align(digitalDate, LV_TEXT_ALIGN_CENTER, 0);
-  lv_obj_set_pos(digitalDate, 0, 214);
+  digitalDate = placeLabel(page, FONT_LARGE, kColorTextSecondary, 0, 142, config::kScreenWidth, LV_TEXT_ALIGN_CENTER);
 
-  digitalTemp = makeLabel(page, FONT_LARGE, kColorAccent, "--\xC2\xB0""C");
-  lv_obj_set_width(digitalTemp, config::kScreenWidth);
-  lv_obj_set_style_text_align(digitalTemp, LV_TEXT_ALIGN_CENTER, 0);
-  lv_obj_set_pos(digitalTemp, 0, 264);
+  // Weather pill
+  lv_obj_t *pill = makeCard(page, 90, 214, 300, 64);
+  lv_obj_set_style_radius(pill, 32, 0);
+  digitalIcon = makeIcon(pill, 44);
+  lv_obj_set_pos(digitalIcon, 16, 10);
+  setIcon(digitalIcon, kSun);
+  digitalTemp = placeLabel(pill, FONT_LARGE, kColorTextPrimary, 70, 12, 90, LV_TEXT_ALIGN_LEFT);
+  lv_label_set_text(digitalTemp, "--\xC2\xB0""C");
+  digitalText = placeLabel(pill, FONT_SMALL, kColorTextSecondary, 160, 22, 128, LV_TEXT_ALIGN_LEFT);
 }
 
 void createAnalogPage(lv_obj_t *page) {
   analogFace = lv_obj_create(page);
   lv_obj_set_size(analogFace, kFaceSize, kFaceSize);
-  lv_obj_set_pos(analogFace, (config::kScreenWidth - kFaceSize) / 2, (config::kScreenHeight - kFaceSize) / 2);
+  lv_obj_set_pos(analogFace, (config::kScreenWidth - kFaceSize) / 2, 8);
   lv_obj_set_style_radius(analogFace, LV_RADIUS_CIRCLE, 0);
-  lv_obj_set_style_bg_color(analogFace, lv_color_hex(kColorCard), 0);
+  lv_obj_set_style_bg_color(analogFace, lv_color_hex(kColorFace), 0);
   lv_obj_set_style_bg_opa(analogFace, LV_OPA_COVER, 0);
   lv_obj_set_style_border_width(analogFace, 3, 0);
-  lv_obj_set_style_border_color(analogFace, lv_color_hex(kColorDivider), 0);
+  lv_obj_set_style_border_color(analogFace, lv_color_hex(0x2A3340), 0);
   lv_obj_set_style_pad_all(analogFace, 0, 0);
   lv_obj_clear_flag(analogFace, LV_OBJ_FLAG_SCROLLABLE);
   lv_obj_add_event_cb(analogFace, drawFace, LV_EVENT_DRAW_MAIN_END, nullptr);
 
-  // Numbers 1-12
-  for (int n = 1; n <= 12; n++) {
-    float a = n * (float)M_PI / 6;
+  // Numbers 12, 3, 6, 9
+  const int numbers[4] = {12, 3, 6, 9};
+  for (int i = 0; i < 4; i++) {
+    float a = i * (float)M_PI / 2;
     char text[4];
-    snprintf(text, sizeof(text), "%d", n);
+    snprintf(text, sizeof(text), "%d", numbers[i]);
     lv_obj_t *label = makeLabel(analogFace, FONT_MEDIUM, kColorTextPrimary, text);
     lv_point_t size;
     lv_txt_get_size(&size, text, FONT_MEDIUM, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
-    float r = kFaceRadius - 44;
+    float r = kFaceRadius - 46;
+    // object coordinates are measured inside the border, so shift by the border width
     lv_obj_set_pos(label, (int)lroundf(kFaceRadius + sinf(a) * r - size.x / 2.0f) - 3,
                    (int)lroundf(kFaceRadius - cosf(a) * r - size.y / 2.0f) - 3);
   }
+
+  // Side columns: date on the left, weather on the right
+  analogWeekday = placeLabel(page, FONT_MEDIUM, kColorTextSecondary, 4, 112, 90, LV_TEXT_ALIGN_CENTER);
+  analogDay = placeLabel(page, FONT_MEDIUM, kColorTextPrimary, 4, 144, 90, LV_TEXT_ALIGN_CENTER);
+  analogIcon = makeIcon(page, 56);
+  lv_obj_set_pos(analogIcon, 386 + (94 - 56) / 2, 104);
+  setIcon(analogIcon, kSun);
+  analogTemp = placeLabel(page, FONT_LARGE, kColorAccent, 386, 164, 94, LV_TEXT_ALIGN_CENTER);
+  lv_label_set_text(analogTemp, "--\xC2\xB0""C");
 }
 
 }  // namespace
@@ -367,41 +396,57 @@ void uiExtraCreate(lv_obj_t *weatherPage, lv_obj_t *digitalPage, lv_obj_t *analo
 }
 
 void uiExtraReset() {
-  nowIcon = nowTemp = nowText = nullptr;
-  digitalHours = digitalColon = digitalMinutes = digitalBox = digitalDate = digitalTemp = nullptr;
-  analogFace = nullptr;
-  for (DayColumn &c : columns) c = DayColumn{};
+  nowIcon = nowTemp = nowText = nowHigh = nowLow = nowRain = nullptr;
+  digitalHours = digitalColon = digitalMinutes = digitalBox = digitalDate = nullptr;
+  digitalTemp = digitalText = digitalIcon = nullptr;
+  analogFace = analogWeekday = analogDay = analogTemp = analogIcon = nullptr;
+  for (DayCard &c : cards) c = DayCard{};
 }
 
 void uiExtraSetWeather(const Weather *weather) {
   if (!nowTemp) return;
-  char text[16];
+  char text[24];
   if (!weather) {
     setTextIfChanged(nowTemp, "--\xC2\xB0""C");
     setTextIfChanged(digitalTemp, "--\xC2\xB0""C");
+    setTextIfChanged(analogTemp, "--\xC2\xB0""C");
     return;
   }
 
   snprintf(text, sizeof(text), "%d\xC2\xB0""C", weather->currentC);
   setTextIfChanged(nowTemp, text);
   setTextIfChanged(digitalTemp, text);
+  setTextIfChanged(analogTemp, text);
+  IconKind kind = iconFor(weather->currentCode);
+  setIcon(nowIcon, kind);
+  setIcon(digitalIcon, kind);
+  setIcon(analogIcon, kind);
   setTextIfChanged(nowText, describe(weather->currentCode));
-  setIcon(nowIcon, iconFor(weather->currentCode));
+  setTextIfChanged(digitalText, describe(weather->currentCode));
 
-  for (int i = 0; i < config::kForecastDays; i++) {
-    DayColumn &c = columns[i];
-    if (i >= weather->dayCount) {
-      lv_obj_add_flag(c.icon, LV_OBJ_FLAG_HIDDEN);
+  if (weather->dayCount > 0) {
+    const ForecastDay &today = weather->days[0];
+    snprintf(text, sizeof(text), "High %d\xC2\xB0", today.maxC);
+    setTextIfChanged(nowHigh, text);
+    snprintf(text, sizeof(text), "Low %d\xC2\xB0", today.minC);
+    setTextIfChanged(nowLow, text);
+    snprintf(text, sizeof(text), "Rain %d%%", today.rainPercent);
+    setTextIfChanged(nowRain, text);
+  }
+
+  for (int i = 0; i < kCards; i++) {
+    DayCard &c = cards[i];
+    int day = i + 1;
+    if (day >= weather->dayCount) {
       setTextIfChanged(c.name, "");
       setTextIfChanged(c.high, "");
       setTextIfChanged(c.low, "");
       setTextIfChanged(c.rain, "");
       continue;
     }
-    const ForecastDay &d = weather->days[i];
-    setTextIfChanged(c.name, i == 0 ? "Today" : weekdayName(d.date));
+    const ForecastDay &d = weather->days[day];
+    setTextIfChanged(c.name, weekdayName(d.date));
     setIcon(c.icon, iconFor(d.code));
-    lv_obj_clear_flag(c.icon, LV_OBJ_FLAG_HIDDEN);
     snprintf(text, sizeof(text), "%d\xC2\xB0", d.maxC);
     setTextIfChanged(c.high, text);
     snprintf(text, sizeof(text), "%d\xC2\xB0", d.minC);
@@ -419,5 +464,12 @@ void uiExtraSetTime(int hour, int minute, int second, bool colonVisible, const S
   placeDigital();
   lv_obj_set_style_text_opa(digitalColon, colonVisible ? LV_OPA_COVER : LV_OPA_TRANSP, 0);
   setTextIfChanged(digitalDate, date.c_str());
+
+  // "Fri, Nov 13" -> "Fri" and "Nov 13"
+  int comma = date.indexOf(',');
+  String weekday = comma > 0 ? date.substring(0, comma) : date;
+  String rest = comma > 0 ? date.substring(comma + 2) : "";
+  setTextIfChanged(analogWeekday, weekday.c_str());
+  setTextIfChanged(analogDay, rest.c_str());
   lv_obj_invalidate(analogFace);
 }

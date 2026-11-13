@@ -11,10 +11,10 @@ namespace {
 // --- Layout (480 x 320) ------------------------------------------------------
 constexpr int kMargin = 16;
 constexpr int kCardWidth = config::kScreenWidth - 2 * kMargin;
-constexpr int kDividerY = 74;
-constexpr int kRowsTop = 82;
-constexpr int kRowPitch = 47;
-constexpr int kRowHeight = 43;
+constexpr int kDividerY = 70;
+constexpr int kRowsTop = 77;
+constexpr int kRowPitch = 45;
+constexpr int kRowHeight = 41;
 constexpr int kBadgeWidth = 60;
 constexpr int kBadgeHeight = 30;
 constexpr int kDestinationX = 78;
@@ -160,10 +160,19 @@ lv_obj_t *makePage() {
 }
 
 void updateDots() {
+  // Dots in a row at the bottom; the current page is a longer pill
+  constexpr int kDot = 6, kPill = 18, kGap = 8;
+  int total = kPill + (kUiPageCount - 1) * kDot + (kUiPageCount - 1) * kGap;
+  int x = (config::kScreenWidth - total) / 2;
   for (int i = 0; i < kUiPageCount; i++) {
     if (!pageDots[i]) continue;
-    lv_obj_set_style_bg_color(pageDots[i], lv_color_hex(i == currentPage ? kColorAccent : kColorStale), 0);
-    lv_obj_set_style_bg_opa(pageDots[i], i == currentPage ? LV_OPA_COVER : LV_OPA_50, 0);
+    bool active = i == currentPage;
+    int width = active ? kPill : kDot;
+    lv_obj_set_size(pageDots[i], width, kDot);
+    lv_obj_set_pos(pageDots[i], x, config::kScreenHeight - 12);
+    lv_obj_set_style_bg_color(pageDots[i], lv_color_hex(active ? kColorAccent : kColorStale), 0);
+    lv_obj_set_style_bg_opa(pageDots[i], active ? LV_OPA_COVER : LV_OPA_60, 0);
+    x += width + kGap;
   }
 }
 
@@ -231,11 +240,8 @@ void uiCreate() {
 
   uiExtraCreate(pages[1], pages[2], pages[3]);
 
-  // Page dots, small, on the right edge (on top of every page)
-  for (int i = 0; i < kUiPageCount; i++) {
-    pageDots[i] = makeBox(lv_layer_top(), 6, 6, kColorStale, LV_RADIUS_CIRCLE);
-    lv_obj_set_pos(pageDots[i], config::kScreenWidth - 9, config::kScreenHeight / 2 - 28 + i * 14);
-  }
+  // Page dots at the bottom (on top of every page)
+  for (int i = 0; i < kUiPageCount; i++) pageDots[i] = makeBox(lv_layer_top(), 6, 6, kColorStale, LV_RADIUS_CIRCLE);
   uiShowPage(0);
 }
 
