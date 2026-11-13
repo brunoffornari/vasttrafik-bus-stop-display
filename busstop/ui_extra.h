@@ -8,7 +8,7 @@
 #include "weather.h"
 
 // Builds the three pages inside the given (empty, full-screen) containers.
-void uiExtraCreate(lv_obj_t *weatherPage, lv_obj_t *digitalPage, lv_obj_t *analogPage);
+void uiExtraCreate(lv_obj_t *weatherPage, lv_obj_t *digitalPage, lv_obj_t *analogPage, lv_obj_t *calendarPage);
 
 // Forgets all widgets (the setup screen deletes them).
 void uiExtraReset();
@@ -17,4 +17,5 @@ void uiExtraReset();
 void uiExtraSetWeather(const Weather *weather);
 
 // Call once a second.
-void uiExtraSetTime(int hour, int minute, int second, bool colonVisible, const String &date);
+void uiExtraSetTime(int hour, int minute, int second, bool colonVisible, const String &date, int year, int month,
+                    int day);

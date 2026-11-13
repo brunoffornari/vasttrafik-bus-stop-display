@@ -227,7 +227,12 @@ lv_obj_t *nowHigh = nullptr, *nowLow = nullptr, *nowSun = nullptr;
 lv_obj_t *statValue[4] = {};
 lv_obj_t *digitalHours = nullptr, *digitalColon = nullptr, *digitalMinutes = nullptr, *digitalBox = nullptr;
 lv_obj_t *digitalDate = nullptr;
-lv_obj_t *analogFace = nullptr;
+lv_obj_t *analogFace = nullptr, *analogDate = nullptr;
+lv_obj_t *calTitle = nullptr, *calWeek = nullptr;
+lv_obj_t *calHeader[7] = {};
+lv_obj_t *calWeekNo[6] = {};
+lv_obj_t *calCell[6][7] = {};
+int calYear = 0, calMonth = 0, calDay = 0;
 int clockHour = 0, clockMinute = 0, clockSecond = 0;
 
 constexpr int kFaceSize = 284;
@@ -393,21 +398,163 @@ void createAnalogPage(lv_obj_t *page) {
     lv_obj_set_pos(label, (int)lroundf(kFaceRadius + sinf(a) * r - size.x / 2.0f) - 3,
                    (int)lroundf(kFaceRadius - cosf(a) * r - size.y / 2.0f) - 3);
   }
+
+  // Date below the center
+  analogDate = placeLabel(analogFace, FONT_MEDIUM, kColorTextSecondary, (int)kFaceRadius - 3 - 80,
+                          (int)kFaceRadius - 3 + 38, 160, LV_TEXT_ALIGN_CENTER);
+}
+
+// --- Calendar ------------------------------------------------------------------
+const char *const kMonthNames[] = {"January", "February", "March",     "April",   "May",      "June",
+                                   "July",    "August",   "September", "October", "November", "December"};
+const char *const kWeekdayHeads[] = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
+constexpr uint32_t kColorRed = 0xFF6B6B;
+
+bool isLeap(int y) {
+  return (y % 4 == 0 && y % 100 != 0) || y % 400 == 0;
+}
+
+int daysInMonth(int y, int m) {
+  static const int days[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+  return m == 2 && isLeap(y) ? 29 : days[m - 1];
+}
+
+int dayOfYear(int y, int m, int d) {
+  int n = d;
+  for (int i = 1; i < m; i++) n += daysInMonth(y, i);
+  return n;
+}
+
+// 1 = Monday ... 7 = Sunday
+int isoWeekday(int y, int m, int d) {
+  static const int offsets[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
+  int yy = m < 3 ? y - 1 : y;
+  int w = (yy + yy / 4 - yy / 100 + yy / 400 + offsets[m - 1] + d) % 7;  // 0 = Sunday
+  return w == 0 ? 7 : w;
+}
+
+int weeksInYear(int y) {
+  auto p = [](int yy) { return (yy + yy / 4 - yy / 100 + yy / 400) % 7; };
+  return (p(y) == 4 || p(y - 1) == 3) ? 53 : 52;
+}
+
+int isoWeek(int y, int m, int d) {
+  int week = (dayOfYear(y, m, d) - isoWeekday(y, m, d) + 10) / 7;
+  if (week < 1) return weeksInYear(y - 1);
+  if (week > weeksInYear(y)) return 1;
+  return week;
+}
+
+// Swedish public holidays (red days), including the de facto ones: midsummer eve, Christmas eve, New Year's eve.
+bool isHoliday(int y, int m, int d) {
+  // Easter Sunday (Gregorian algorithm)
+  int a = y % 19, b = y / 100, c = y % 100;
+  int dd = b / 4, e = b % 4, f = (b + 8) / 25, g = (b - f + 1) / 3;
+  int h = (19 * a + b - dd - g + 15) % 30, i = c / 4, k = c % 4;
+  int l = (32 + 2 * e + 2 * i - h - k) % 7, mm = (a + 11 * h + 22 * l) / 451;
+  int easterMonth = (h + l - 7 * mm + 114) / 31, easterDay = ((h + l - 7 * mm + 114) % 31) + 1;
+  int easter = dayOfYear(y, easterMonth, easterDay);
+  int doy = dayOfYear(y, m, d);
+  int fromEaster = doy - easter;
+  if (fromEaster == -2 || fromEaster == 0 || fromEaster == 1 || fromEaster == 39 || fromEaster == 49) return true;
+
+  if (m == 1 && (d == 1 || d == 6)) return true;
+  if (m == 5 && d == 1) return true;
+  if (m == 6 && d == 6) return true;
+  if (m == 12 && (d == 24 || d == 25 || d == 26 || d == 31)) return true;
+  int weekday = isoWeekday(y, m, d);
+  if (m == 6 && d >= 19 && d <= 25 && weekday == 5) return true;   // midsummer eve
+  if (m == 6 && d >= 20 && d <= 26 && weekday == 6) return true;   // midsummer day
+  if (((m == 10 && d == 31) || (m == 11 && d <= 6)) && weekday == 6) return true;  // all saints' day
+  return false;
+}
+
+void createCalendarPage(lv_obj_t *page) {
+  calTitle = placeLabel(page, FONT_LARGE, kColorTextPrimary, 24, 8, 300, LV_TEXT_ALIGN_LEFT);
+  calWeek = placeLabel(page, FONT_MEDIUM, kColorAccent, 330, 12, 126, LV_TEXT_ALIGN_RIGHT);
+
+  constexpr int kLeft = 24, kWeekCol = 36, kCell = 55, kTop = 56, kRow = 37;
+  for (int c = 0; c < 7; c++) {
+    calHeader[c] = placeLabel(page, FONT_SMALL, c == 6 ? kColorRed : kColorTextSecondary, kLeft + kWeekCol + c * kCell,
+                              kTop, kCell, LV_TEXT_ALIGN_CENTER);
+    lv_label_set_text(calHeader[c], kWeekdayHeads[c]);
+  }
+  for (int r = 0; r < 6; r++) {
+    int y = kTop + 26 + r * kRow;
+    calWeekNo[r] = placeLabel(page, FONT_SMALL, 0x4B5563, kLeft, y + 8, kWeekCol - 6, LV_TEXT_ALIGN_CENTER);
+    for (int c = 0; c < 7; c++) {
+      lv_obj_t *cell = placeLabel(page, FONT_MEDIUM, kColorTextPrimary, kLeft + kWeekCol + c * kCell + 4, y, kCell - 8,
+                                  LV_TEXT_ALIGN_CENTER);
+      lv_obj_set_style_pad_top(cell, 3, 0);
+      lv_obj_set_style_radius(cell, 9, 0);
+      lv_obj_set_height(cell, 32);
+      calCell[r][c] = cell;
+    }
+  }
+}
+
+void updateCalendar(int year, int month, int day) {
+  if (!calTitle || (year == calYear && month == calMonth && day == calDay)) return;
+  calYear = year;
+  calMonth = month;
+  calDay = day;
+
+  char text[24];
+  snprintf(text, sizeof(text), "%s %d", kMonthNames[month - 1], year);
+  setTextIfChanged(calTitle, text);
+  snprintf(text, sizeof(text), "Week %d", isoWeek(year, month, day));
+  setTextIfChanged(calWeek, text);
+
+  int first = isoWeekday(year, month, 1);  // column of the 1st (1 = Monday)
+  int days = daysInMonth(year, month);
+  for (int r = 0; r < 6; r++) {
+    int firstDayInRow = r * 7 - (first - 1) + 1;
+    if (firstDayInRow > days) {
+      setTextIfChanged(calWeekNo[r], "");
+    } else {
+      int anchor = firstDayInRow < 1 ? 1 : firstDayInRow;
+      snprintf(text, sizeof(text), "%d", isoWeek(year, month, anchor));
+      setTextIfChanged(calWeekNo[r], text);
+    }
+    for (int c = 0; c < 7; c++) {
+      lv_obj_t *cell = calCell[r][c];
+      int n = r * 7 + c - (first - 1) + 1;
+      if (n < 1 || n > days) {
+        setTextIfChanged(cell, "");
+        lv_obj_set_style_bg_opa(cell, LV_OPA_TRANSP, 0);
+        continue;
+      }
+      snprintf(text, sizeof(text), "%d", n);
+      setTextIfChanged(cell, text);
+      bool red = c == 6 || isHoliday(year, month, n);
+      bool today = n == day;
+      uint32_t color = today ? 0x04110F : (red ? kColorRed : kColorTextPrimary);
+      lv_obj_set_style_text_color(cell, lv_color_hex(color), 0);
+      lv_obj_set_style_bg_color(cell, lv_color_hex(kColorAccent), 0);
+      lv_obj_set_style_bg_opa(cell, today ? LV_OPA_COVER : LV_OPA_TRANSP, 0);
+    }
+  }
 }
 
 }  // namespace
 
-void uiExtraCreate(lv_obj_t *weatherPage, lv_obj_t *digitalPage, lv_obj_t *analogPage) {
+void uiExtraCreate(lv_obj_t *weatherPage, lv_obj_t *digitalPage, lv_obj_t *analogPage, lv_obj_t *calendarPage) {
   createWeatherPage(weatherPage);
   createDigitalPage(digitalPage);
   createAnalogPage(analogPage);
+  createCalendarPage(calendarPage);
 }
 
 void uiExtraReset() {
   nowIcon = nowTemp = nowText = nowHigh = nowLow = nowSun = nullptr;
   for (lv_obj_t *&v : statValue) v = nullptr;
   digitalHours = digitalColon = digitalMinutes = digitalBox = digitalDate = nullptr;
-  analogFace = nullptr;
+  analogFace = analogDate = nullptr;
+  calTitle = calWeek = nullptr;
+  for (lv_obj_t *&o : calHeader) o = nullptr;
+  for (lv_obj_t *&o : calWeekNo) o = nullptr;
+  for (auto &row : calCell) for (lv_obj_t *&o : row) o = nullptr;
+  calYear = calMonth = calDay = 0;
   for (DayCard &c : cards) c = DayCard{};
 }
 
@@ -466,7 +613,8 @@ void uiExtraSetWeather(const Weather *weather) {
   }
 }
 
-void uiExtraSetTime(int hour, int minute, int second, bool colonVisible, const String &date) {
+void uiExtraSetTime(int hour, int minute, int second, bool colonVisible, const String &date, int year, int month,
+                    int day) {
   if (!digitalBox) return;
   clockHour = hour;
   clockMinute = minute;
@@ -475,5 +623,7 @@ void uiExtraSetTime(int hour, int minute, int second, bool colonVisible, const S
   lv_obj_set_style_text_color(digitalColon, lv_color_hex(kColorAccent), 0);
   lv_obj_set_style_text_opa(digitalColon, colonVisible ? LV_OPA_COVER : LV_OPA_TRANSP, 0);
   setTextIfChanged(digitalDate, date.c_str());
+  setTextIfChanged(analogDate, date.c_str());
+  updateCalendar(year, month, day);
   lv_obj_invalidate(analogFace);
 }

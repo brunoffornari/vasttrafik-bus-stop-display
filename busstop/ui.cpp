@@ -238,7 +238,7 @@ void uiCreate() {
   lv_obj_set_style_text_align(statusLabel, LV_TEXT_ALIGN_CENTER, 0);
   lv_obj_align(statusLabel, LV_ALIGN_CENTER, 0, 36);
 
-  uiExtraCreate(pages[1], pages[2], pages[3]);
+  uiExtraCreate(pages[1], pages[2], pages[3], pages[4]);
 
   // Page dots at the bottom (on top of every page)
   for (int i = 0; i < kUiPageCount; i++) pageDots[i] = makeBox(lv_layer_top(), 6, 6, kColorStale, LV_RADIUS_CIRCLE);
@@ -264,8 +264,9 @@ void uiSetWeather(const Weather *weather) {
   uiExtraSetWeather(weather);
 }
 
-void uiSetTimeDetail(int hour, int minute, int second, bool colonVisible, const String &date) {
-  uiExtraSetTime(hour, minute, second, colonVisible, date);
+void uiSetTimeDetail(int hour, int minute, int second, bool colonVisible, const String &date, int year, int month,
+                     int day) {
+  uiExtraSetTime(hour, minute, second, colonVisible, date, year, month, day);
 }
 
 void uiSetStopName(const String &name) {
